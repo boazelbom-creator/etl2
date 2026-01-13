@@ -1,0 +1,31 @@
+you are AWS developer, your mission is to build lambda function with following specification:
+connect to PostgreSQL database.
+read data sequentially from table posts and for each post read its related comments from the comments table, in order of their comment_priority and than their text_length.
+for each post, create a concatenate string out of the following components:
+- 'metadata:' + ' [Post_id: ' + post_id + ' | Timestamp: ' + timestamp + ' | Author: ' + author + ']'
+- 'Title: ' + title
+- 'Question (priority 1): ' + post_texts
+- 'Important answer (priority 2): ' + comment_texts
+- 'Other comments (priority 3): ' + comment_texts
+remarks on the concatenation:
+- fixed text are surrounded by '', other names are variables coming from the database, the sign + mean concatenate
+- concatenate only the 5 first characters of the author column
+- the important answer include only the first comment of each post
+- the other comments include a concatenation of all other comments for the specific post (the second, third...)
+- between components and comments put some delimiter that is common in RAG documents 
+truncate the resulted string so it will contains only a chunk_size (from configuration file) of the first words
+for each resulted string, insert a row to the facebook_chunks table, with the following value:
+- chunk_id - create sequence number that will uniquely identify the row
+- post_id - of the post
+- timestamp - of the post
+- full_chank - the resulted string from the concatenation
+- engagement_score - the total number of comments in the handled post 
+perform a commit every 1,000 inserts.
+posts and comments tables format are in the schema.sql file in the current folder.
+add to the schema.sql commands to create the facebook_chunks table and its index.
+
+nonfunctional requirements:
+- use python
+- implement virtual environment
+- configuration file includes: postgres database url, db credentials, chunk size, admin list, region
+ 
