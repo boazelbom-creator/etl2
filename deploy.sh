@@ -16,8 +16,23 @@ MEMORY_SIZE=1024
 TIMEOUT=600
 DESCRIPTION="ETL pipeline: Facebook posts to RAG chunks"
 
-# Optional: IAM Role ARN (required for creating new function)
+# IAM Role ARN (required for creating new function)
 # ROLE_ARN="arn:aws:iam::YOUR_ACCOUNT_ID:role/YOUR_LAMBDA_ROLE"
+
+# VPC Configuration (required for database access)
+# Comma-separated list of subnet IDs
+SUBNET_IDS="subnet-xxxxxxxxx,subnet-yyyyyyyyy"
+# Comma-separated list of security group IDs
+SECURITY_GROUP_IDS="sg-xxxxxxxxx"
+
+# Environment Variables
+DB_HOST="your-postgres-host.amazonaws.com"
+DB_NAME="your-database-name"
+DB_USER="your-username"
+DB_PASSWORD="your-password"
+DB_PORT="5432"
+CHUNK_SIZE="700"
+BATCH_COMMIT_SIZE="1000"
 
 # Colors for output
 RED='\033[0;31m'
@@ -121,6 +136,8 @@ if echo "$FUNCTION_EXISTS" | grep -q "ResourceNotFoundException"; then
         --timeout "$TIMEOUT" \
         --description "$DESCRIPTION" \
         --zip-file fileb://lambda-deployment.zip \
+        --vpc-config SubnetIds="${SUBNET_IDS}",SecurityGroupIds="${SECURITY_GROUP_IDS}" \
+        --environment "{\"Variables\":{\"DB_HOST\":\"${DB_HOST}\",\"DB_NAME\":\"${DB_NAME}\",\"DB_USER\":\"${DB_USER}\",\"DB_PASSWORD\":\"${DB_PASSWORD}\",\"DB_PORT\":\"${DB_PORT}\",\"CHUNK_SIZE\":\"${CHUNK_SIZE}\",\"BATCH_COMMIT_SIZE\":\"${BATCH_COMMIT_SIZE}\"}}" \
         --region "$REGION" \
         --output text > /dev/null
 
@@ -149,6 +166,8 @@ else
         --memory-size "$MEMORY_SIZE" \
         --timeout "$TIMEOUT" \
         --description "$DESCRIPTION" \
+        --vpc-config SubnetIds="${SUBNET_IDS}",SecurityGroupIds="${SECURITY_GROUP_IDS}" \
+        --environment "{\"Variables\":{\"DB_HOST\":\"${DB_HOST}\",\"DB_NAME\":\"${DB_NAME}\",\"DB_USER\":\"${DB_USER}\",\"DB_PASSWORD\":\"${DB_PASSWORD}\",\"DB_PORT\":\"${DB_PORT}\",\"CHUNK_SIZE\":\"${CHUNK_SIZE}\",\"BATCH_COMMIT_SIZE\":\"${BATCH_COMMIT_SIZE}\"}}" \
         --region "$REGION" \
         --output text > /dev/null
 
@@ -165,16 +184,23 @@ echo "Region:   $REGION"
 echo "Runtime:  $RUNTIME"
 echo "Memory:   ${MEMORY_SIZE}MB"
 echo "Timeout:  ${TIMEOUT}s"
+echo "VPC:      Subnets: ${SUBNET_IDS}"
+echo "          Security Groups: ${SECURITY_GROUP_IDS}"
+echo ""
+echo "Environment variables configured:"
+echo "  DB_HOST=${DB_HOST}"
+echo "  DB_NAME=${DB_NAME}"
+echo "  DB_USER=${DB_USER}"
+echo "  DB_PASSWORD=****"
+echo "  DB_PORT=${DB_PORT}"
+echo "  CHUNK_SIZE=${CHUNK_SIZE}"
+echo "  BATCH_COMMIT_SIZE=${BATCH_COMMIT_SIZE}"
 echo ""
 echo "Next steps:"
-echo "1. Configure environment variables in AWS Console or via CLI:"
-echo "   aws lambda update-function-configuration \\"
-echo "     --function-name $FUNCTION_NAME \\"
-echo "     --environment \"Variables={DB_HOST=your-host,DB_NAME=your-db,DB_USER=your-user,DB_PASSWORD=your-pass,DB_PORT=5432,CHUNK_SIZE=700,BATCH_COMMIT_SIZE=1000}\""
-echo ""
-echo "2. If using VPC, configure VPC settings in AWS Console"
-echo ""
+echo "1. Verify VPC subnets have NAT gateway for internet access (if needed)"
+echo "2. Verify security group allows outbound traffic to PostgreSQL (port 5432)"
 echo "3. Test the function:"
 echo "   aws lambda invoke --function-name $FUNCTION_NAME --region $REGION output.json"
+echo "   cat output.json"
 echo ""
 echo "============================================================"
