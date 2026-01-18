@@ -39,7 +39,7 @@ lambda-deployment.zip
 security/
 *.pem
 *.key
-config/config.json
+# config/config.json  # Uncomment if using real credentials
 .env
 .env.local
 

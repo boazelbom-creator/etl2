@@ -1,0 +1,20 @@
+{
+  "database": {
+    "host": "your-postgres-host.amazonaws.com",
+    "database": "your-database-name",
+    "username": "your-username",
+    "password": "your-password",
+    "port": 5432
+  },
+  "processing": {
+    "chunk_size": 700,
+    "batch_commit_size": 1000
+  },
+  "aws": {
+    "region": "us-east-1"
+  },
+  "admin_list": [
+    "admin1@example.com",
+    "admin2@example.com"
+  ]
+}
